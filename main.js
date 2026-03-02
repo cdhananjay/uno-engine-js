@@ -14,22 +14,55 @@ var CardTypes;
     CardTypes[CardTypes["DRAW4"] = 4] = "DRAW4";
 })(CardTypes || (CardTypes = {}));
 export class Game {
-    reversed;
+    reversed = false;
     players;
-    deck;
-    drawPile;
-    discardPile;
-    currTurn;
+    deck = [];
+    drawPile = [];
+    discardPile = [];
+    currTurn = 0;
     constructor(players) {
+        if (players.length < 2 || players.length >= 5)
+            throw new Error("too few / many players");
         this.players = players;
-        this.reversed = false;
-        this.deck = [];
-        this.drawPile = [];
-        this.discardPile = [];
-        this.currTurn = 0;
         this.fillDeck();
         this.shuffleCards(this.deck);
         this.distributeCards();
+    }
+    get currPlayer() {
+        return this.players[this.currTurn];
+    }
+    playTurn(card) {
+        if (this.currPlayerPlayableCards.length === 0) {
+            this.drawCard(this.currPlayer);
+            this.currTurn = this.nextPlayerIndex;
+            return;
+        }
+        let cardToDiscard;
+        if (this.currPlayerPlayableCards.length === 1)
+            cardToDiscard = this.currPlayerPlayableCards[0];
+        else if (this.currPlayer.isBot) {
+            const index = Math.floor(Math.random() * this.currPlayerPlayableCards.length);
+            cardToDiscard = this.currPlayerPlayableCards[index];
+        }
+        else if (this.currPlayerPlayableCards.indexOf(card) === -1)
+            throw new Error("invalid discard card choice");
+        else if (this.currPlayerPlayableCards.indexOf(card) !== -1)
+            cardToDiscard = card;
+        this.discardCard(this.currPlayer, this.currPlayer.cards.indexOf(cardToDiscard));
+        this.performCardAction(cardToDiscard);
+        this.currTurn = this.nextPlayerIndex;
+    }
+    performCardAction(card) {
+        if (card.type === CardTypes.REVERSE)
+            this.reversed = !this.reversed;
+        else if (card.type === CardTypes.SKIP)
+            this.currTurn = this.nextPlayerIndex;
+        else if (card.type === CardTypes.DRAW2)
+            for (let i = 0; i < 2; i++)
+                this.drawCard(this.players[this.nextPlayerIndex]);
+        else if (card.type === CardTypes.DRAW4)
+            for (let i = 0; i < 4; i++)
+                this.drawCard(this.players[this.nextPlayerIndex]);
     }
     fillDeck() {
         // NUMBER : two copies of each 1 to 9 for each colour
@@ -76,37 +109,7 @@ export class Game {
         }
         this.discardPile.push(this.deck.pop());
     }
-    playTurn(card) {
-        const topDiscardPileCard = this.discardPile[this.discardPile.length - 1];
-        if (topDiscardPileCard.type === CardTypes.DRAW2)
-            for (let i = 0; i < 2; i++)
-                this.drawCard(this.players[this.currTurn]);
-        else if (topDiscardPileCard.type === CardTypes.DRAW4)
-            for (let i = 0; i < 4; i++)
-                this.drawCard(this.players[this.currTurn]);
-        const playableCards = this.getPlayableCards();
-        if (playableCards.length === 0) {
-            this.drawCard(this.players[this.currTurn]);
-            this.currTurn = this.getNextPlayerIndex();
-            return;
-        }
-        if (playableCards.indexOf(card) != -1) {
-            this.discardCard(this.players[this.currTurn], this.players[this.currTurn].cards.indexOf(card));
-            if (card.type === CardTypes.REVERSE)
-                this.reversed = !this.reversed;
-            else if (card.type === CardTypes.SKIP)
-                this.currTurn = this.getNextPlayerIndex();
-            else if (card.type === CardTypes.DRAW2)
-                for (let i = 0; i < 2; i++)
-                    this.drawCard(this.players[this.getNextPlayerIndex()]);
-            else if (card.type === CardTypes.DRAW4)
-                for (let i = 0; i < 4; i++)
-                    this.drawCard(this.players[this.getNextPlayerIndex()]);
-            this.currTurn = this.getNextPlayerIndex();
-            return;
-        }
-    }
-    getNextPlayerIndex() {
+    get nextPlayerIndex() {
         if (this.reversed) {
             if (this.currTurn === 0)
                 return this.players.length - 1;
@@ -120,17 +123,21 @@ export class Game {
                 return this.currTurn + 1;
         }
     }
-    getPlayableCards() {
-        return this.players[this.currTurn].cards.filter(card => this.isValidDiscard(card));
+    get currPlayerPlayableCards() {
+        return this.currPlayer.cards.filter(card => this.isValidDiscard(card));
     }
     drawCard(player) {
         if (this.drawPile.length > 0)
             player.cards.push(this.drawPile.pop());
         // When the draw pile runs out, shuffle the discard pile (except the top card). That becomes the new draw pile.
-        const topCardOfDiscardPile = this.discardPile.pop();
-        this.shuffleCards(this.discardPile);
-        this.drawPile = [...this.discardPile];
-        this.discardPile.push(topCardOfDiscardPile);
+        else {
+            const topCardOfDiscardPile = this.discardPile.pop();
+            this.shuffleCards(this.discardPile);
+            while (this.discardPile.length > 0) {
+                this.drawPile.push(this.discardPile.pop());
+            }
+            this.discardPile.push(topCardOfDiscardPile);
+        }
     }
     discardCard(player, index) {
         if (!this.isValidDiscard(player.cards[index]))
@@ -170,14 +177,12 @@ export class Game {
     }
 }
 export class Player {
-    cards;
+    cards = [];
     id;
-    isBot = false;
-    constructor(id, isBot) {
-        this.cards = [];
+    isBot;
+    constructor(id, isBot = false) {
         this.id = id;
-        if (isBot != undefined)
-            this.isBot = isBot;
+        this.isBot = isBot;
     }
 }
 class Card {
