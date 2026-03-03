@@ -1,0 +1,44 @@
+{
+    "name": "uno.js",
+    "version": "0.0.1",
+    "description": "A headless, zero-dependency uno game logic engine written in TypeScript.",
+    "keywords": [
+        "uno",
+        "game",
+        "engine",
+        "uno",
+        "game",
+        "uno",
+        "engine",
+        "uno",
+        "game",
+        "engine",
+        "game",
+        "engine"
+    ],
+    "homepage": "https://github.com/cdhananjay/uno-engine#readme",
+    "bugs": {
+        "url": "https://github.com/cdhananjay/uno-engine/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cdhananjay/uno-engine.git"
+    },
+    "license": "ISC",
+    "author": "Dhananjay Chavan",
+    "type": "module",
+    "main": "dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "build",
+        "README.md"
+    ],
+    "scripts": {
+        "build": "npx tsc",
+        "prettier": "npx prettier --write ."
+    },
+    "devDependencies": {
+        "prettier": "^3.8.1",
+        "typescript": "^5.9.3"
+    }
+}
