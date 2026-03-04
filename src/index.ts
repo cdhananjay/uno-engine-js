@@ -200,7 +200,7 @@ export default class Game {
     private fill(pile: Card[]) {
         // Numbers : two copies of each 1 to 9 per colour, one 0 per colour = 19 × 4 colours = 76 Number cards
         for (let count = 0; count < 2; count++)
-            for (let value = 1; value < 10; value++)
+            for (let value = 1; value <= 9; value++)
                 for (let colour = Colours.RED; colour <= Colours.BLUE; colour++)
                     pile.push(new Card(CardTypes.NUMBER, colour, value));
 
@@ -208,12 +208,14 @@ export default class Game {
             pile.push(new Card(CardTypes.NUMBER, colour, 0));
 
         // Skip : two per colour = 2 × 4 colours = 8 Skip cards
-        for (let colour = Colours.RED; colour <= Colours.BLUE; colour++)
-            pile.push(new Card(CardTypes.REVERSE, colour));
+        for (let count = 0; count < 2; count++)
+            for (let colour = Colours.RED; colour <= Colours.BLUE; colour++)
+                pile.push(new Card(CardTypes.REVERSE, colour));
 
         // Reverse: two per colour = 2 × 4 colours = 8 Reverse cards
-        for (let colour = Colours.RED; colour <= Colours.BLUE; colour++)
-            pile.push(new Card(CardTypes.SKIP, colour));
+        for (let count = 0; count < 2; count++)
+            for (let colour = Colours.RED; colour <= Colours.BLUE; colour++)
+                pile.push(new Card(CardTypes.SKIP, colour));
 
         // Draw2 : two per colour = 2 × 4 colours = 8 Draw2 cards
         for (let count = 0; count < 2; count++)
@@ -221,11 +223,11 @@ export default class Game {
                 pile.push(new Card(CardTypes.DRAW2, colour));
 
         // Draw4 : 4 initially uncoloured (gets coloured when discarded) = 4 Draw4 cards
-        for (let count = 0; count < 2; count++)
+        for (let count = 0; count < 4; count++)
             pile.push(new Card(CardTypes.DRAW4));
 
         // Wild : 4 initially uncoloured (gets coloured when discarded) = 4 Wild cards
-        for (let count = 0; count < 2; count++)
+        for (let count = 0; count < 4; count++)
             pile.push(new Card(CardTypes.WILD));
     }
 
@@ -378,6 +380,7 @@ export default class Game {
             str += `${this._drawPile[i]!.toString()}\n`;
         str += `==== Players: ====\n`;
         for (const player of this._players) str += `${player.toString()}\n`;
+        return str;
     }
 }
 

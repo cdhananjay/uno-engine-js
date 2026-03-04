@@ -27,18 +27,30 @@
     "license": "ISC",
     "author": "Dhananjay Chavan",
     "type": "module",
-    "main": "dist/index.js",
+    "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
     "files": [
-        "build",
-        "README.md"
+        "dist"
     ],
     "scripts": {
-        "build": "npx tsc",
-        "prettier": "npx prettier --write ."
+        "build": "tsc",
+        "clean": "rm -rf dist",
+        "prepublishOnly": "npm run clean && npm run build",
+        "prettier": "npx prettier --write .",
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
     },
     "devDependencies": {
+        "@types/jest": "^30.0.0",
+        "@types/node": "^25.3.3",
+        "jest": "^30.2.0",
         "prettier": "^3.8.1",
+        "ts-jest": "^29.4.6",
         "typescript": "^5.9.3"
     }
 }
