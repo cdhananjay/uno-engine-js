@@ -11,8 +11,8 @@ A headless, zero-dependency uno game logic engine written in TypeScript.
 
 ## Install  & Import
 **Install with npm**
-```
-bash npm i uno-engine-js
+```bash
+npm i uno-engine-js
 ```   
 **TypeScript / ESM**
 ```typescript
@@ -25,15 +25,26 @@ import type { IPlayer, ICard } from 'js-chess-engine'
 const game = new Game(["osaka", {name: "chiyo", isBot: true}, "tomo"])   
 ```   
 ## Example Usage:
-(unfinished) https://github.com/cdhananjay/uno
+A multiplayer Uno Game I'm working on:
+- (unfinished) https://github.com/cdhananjay/uno
+
+Watch bots play:
+```typescript
+const game = new Game([{name: "minamo", isBot: true}, {name:"yukari", isBot : true}]);
+
+while (!g.isOver) {
+    g.playTurn();
+    console.log(g.toString())
+}
+```
 
 ## Documentation:
 ### Game loop
 ```typescript
-while(!gameOver) {  
+while(!game.isOver) {  
 // make player choose a card from game.PlayableCards()  
 	try { 
-	 game.playTurn(card); 
+	 game.playTurn(card);
 	 // no need to do anything else 
 	 // Game class handles everything 
 	 } catch (err) {
@@ -53,9 +64,16 @@ Throws: error if array size is less than 2 or more than 10
 
 **toString**
 
-`game.toString()` - prints the game stats, including both the piles and all players with their hand
+`game.toString()` - prints the game stats, including both the piles and all players with their hand, useful for debugging
 
 Note: toString method is also available for each Player & Card
+
+**isOver**
+
+`game.isOver`  
+Note: if this returns true, `playTurn` & `nextPlayerIndex` methods will ALWAYS throw error
+
+Returns: true if there is only one player with a non-empty hand, else false
 
 **players**
 
@@ -74,7 +92,7 @@ Returns: an array consisting of cards in discard pile
 
 **currPlayerIndex**
 
-`game.currPlayerIndex`  
+`game.currPlayerIndex`
 Returns: current player's index in players array
 
 **currPlayer**
@@ -85,7 +103,9 @@ Returns: returns current player object, equivalent of `game.players[game.currPla
 **nextPlayerIndex**
 
 `game.nextPlayerIndex`  
-Returns: index of player in the player's array whose turn is next
+Returns: index of player in the player's array whose turn is next.
+
+Throws: error if `game.isOver` is true
 
 **isReversed**
 
@@ -111,11 +131,13 @@ A card is playable if it follows any of the given conditions:
 - else if only 1 playable card available which is NOT of type wild or draw4 : that card is played regardless of params given, return
 - else the given card and wildColour (if needed) are played
 
+**Imp Note: card actions are performed internally, current player index gets updated internally, players with empty hand are skipped**
+
 `game.playTurn(card, wildColour)`  
 Params:
 - `card` : `ICard` ( *optional* ) - card to play out of the `game.playableCards`, ignored if current player is a bot or no or 1 playable card
 - `wildColour` : `Colours` ( *optional* ) - colour to set as the wildColour, ignored if card is not of type Wild or Draw4 or player is a bot  
-  Throws: error if required parameters are not provided by players with `isBot = false`
+  Throws: error if required parameters are not provided by players with `isBot = false`; or if `game.isOver` is true
 
 ### TypeScript Support
 ```typescript  
@@ -173,7 +195,7 @@ Red, Yellow, Green, Blue
 - Wild: Current player makes a colour choice, the chosen colour is now the wild colour.
 
 ### Ending the game:
-- Endless until the program crashes. This will be changed in future.
+- Game ends if there is only one player with a non-empty hand.
 
 ## Contributing
 Feel free to contribute but please ensure your code passes all tests before submitting a pull request:

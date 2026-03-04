@@ -1,23 +1,9 @@
 {
-<<<<<<< Updated upstream
-    "name": "uno.js",
-    "version": "0.0.2",
-=======
     "name": "uno-engine-js",
-    "version": "0.0.0",
->>>>>>> Stashed changes
+    "version": "0.1.0",
     "description": "A headless, zero-dependency uno game logic engine written in TypeScript.",
     "keywords": [
         "uno",
-        "game",
-        "engine",
-        "uno",
-        "game",
-        "uno",
-        "engine",
-        "uno",
-        "game",
-        "engine",
         "game",
         "engine"
     ],

@@ -41,6 +41,19 @@ export default class Game {
     }
 
     /**
+     * Note: if this returns true, playTurn method will ALWAYS throw error
+     * @return true if there is only one player with a non-empty hand, else false
+     */
+    public get isOver() {
+        let nonEmptyHandPlayerCount = 0;
+        for (const player of this.players)
+            if (player.hand.length > 0)
+                if (nonEmptyHandPlayerCount === 1) return true;
+                else nonEmptyHandPlayerCount++;
+        return false;
+    }
+
+    /**
      * @return an array consisting of all the players in the game
      */
     public get players() {
@@ -78,16 +91,28 @@ export default class Game {
     }
 
     /**
-     * @return  index of player in the player’s array whose turn is next
+     * @return index of player in the player’s array whose turn is next
+     * @throws error if `isOver` is true
      */
     public get nextPlayerIndex() {
-        if (this._isReversed) {
-            if (this._currPlayerIndex === 0) return this._players.length - 1;
-            else return this._currPlayerIndex - 1;
-        } else {
-            if (this._currPlayerIndex === this._players.length - 1) return 0;
-            else return this._currPlayerIndex + 1;
+        if (this.isOver) throw new Error("game has ended");
+        let index = this.currPlayerIndex;
+        let initialIndex = index;
+        while (1) {
+            if (this.isReversed) {
+                if (index === 0) index = this.players.length - 1;
+                index = index - 1;
+            } else {
+                if (index === this.players.length - 1) index = 0;
+                index = index + 1;
+            }
+            if (this.players[index].hand.length !== 0) return index;
+            if (index === initialIndex)
+                throw new Error(
+                    "looped through the array, this should had never happen",
+                );
         }
+        return -1; // code will never reach this line, this is just for setting return type
     }
 
     /**
@@ -122,11 +147,15 @@ export default class Game {
      *     -else if only 1 playable card available which is NOT of type wild or draw4 :
      *          that card is played regardless of params given, return
      *     -else the given card and wildColour (if needed) are played
+     *
+     * **Imp Note: card actions are performed internally, current player index gets updated internally, players with empty hand are skipped**
      * @param card card to play out of the `game.playableCards`, ignored if current player is a bot or no or 1 playable card
      * @param wildColour colour to set as the wildColour, ignored if card is not of type Wild or Draw4 or player is a bot
      * @throws error error if required parameters are not provided by players with `isBot = false`
+     * @throws error if `game.isOver` is true
      */
     public playTurn(card?: Card, wildColour?: Colours) {
+        if (this.isOver) throw new Error("game has already ended");
         const playableCards = this.playableCards; // <=== this is just to reduce total calls
 
         /* =========== IMPORTANT ===========
@@ -223,11 +252,11 @@ export default class Game {
             for (let colour = Colours.RED; colour <= Colours.BLUE; colour++)
                 pile.push(new Card(CardTypes.DRAW2, colour));
 
-        // Draw4 : 4 initially uncoloured (gets coloured when discarded) = 4 Draw4 cards
+        // Draw4 : 4 uncoloured = 4 Draw4 cards
         for (let count = 0; count < 4; count++)
             pile.push(new Card(CardTypes.DRAW4));
 
-        // Wild : 4 initially uncoloured (gets coloured when discarded) = 4 Wild cards
+        // Wild : 4 uncoloured = 4 Wild cards
         for (let count = 0; count < 4; count++)
             pile.push(new Card(CardTypes.WILD));
     }
@@ -271,7 +300,7 @@ export default class Game {
      */
     private drawCard(player: Player) {
         const drawPileTopCard = this._drawPile.pop();
-        if (drawPileTopCard) player.hand.push(drawPileTopCard);
+        if (drawPileTopCard !== undefined) player.hand.push(drawPileTopCard);
         // When the draw pile runs out, all cards from discard pile except the top card are added to draw pile
         else {
             const discardPileTopCard = this._discardPile.pop();
